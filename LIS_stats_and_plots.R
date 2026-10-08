@@ -19,12 +19,27 @@ library(tibble)
 library(QsRutils)
 
 # Set orders
-orderSeason <- c("Fall", "Winter", "Spring", "Summer")
-orderSites <- c("A4","B3", "D3", "AC", "CI", "RP", "CP", "SR")
+orderSeason <- c(
+  "Fall", 
+  "Winter", 
+  "Spring", 
+  "Summer"
+)
+
+orderSites <- c(
+  "A4",
+  "B3", 
+  "D3", 
+  "AC", 
+  "CI", 
+  "RP", 
+  "CP", 
+  "SR"
+)
 
 site_shapes <- c(
   "AC" = 21,
-  "CI"   = 22,
+  "CI" = 22,
   "RP" = 23,
   "CP" = 24,
   "SR" = 25,
@@ -44,7 +59,8 @@ season_colors <- c(
 barplots_colors <- c(
   '#40004b','#9970ab','#e7d4e8','#00441b', '#1b7837', '#a6dba0',
   '#662506','#bf812d', '#dfc27d','#01665e','#80cdc1','#c7eae5',
-  '#c51b7d','#de77ae','#f1b6da','#fde0ef', '#993404', '#cc4c02')
+  '#c51b7d','#de77ae','#f1b6da','#fde0ef', '#993404', '#cc4c02'
+)
 
 
 diversity_colors <- c(
@@ -54,9 +70,7 @@ diversity_colors <- c(
 
 # THeme
 theme_figures <- function() {
-  
   theme_bw(base_size = 10) +
-    
     theme(
       panel.grid = element_blank(),
       panel.border = element_rect(linewidth = 0.8),
@@ -125,7 +139,6 @@ PCAplot <- ggplot() +
     size = 4.5,
     stroke = 1.3
   ) +
-  
   geom_segment(
     data = vars,
     aes(
@@ -137,7 +150,6 @@ PCAplot <- ggplot() +
     arrow = arrow(length = unit(0.2,"cm")),
     colour = "grey30"
   ) +
-  
   geom_text_repel(
     data = vars,
     aes(
@@ -147,18 +159,13 @@ PCAplot <- ggplot() +
     ),
     size = 4
   ) +
-  
   scale_colour_manual(values = season_colors) +
-  
   scale_shape_manual(values = site_shapes) +
-  
   labs(
     x = paste0("PC1 (", pc1, "%)"),
     y = paste0("PC2 (", pc2, "%)")
   ) +
-  
   coord_equal() +
-  
   theme_figures()
 
 # Plot figure
@@ -333,7 +340,6 @@ alpha_div_repeated_18S <- alpha_long_18S %>%
       na.rm = TRUE,
       names = FALSE
     ),
-    
     Shannon_mean = mean(Shannon, na.rm = TRUE),
     Shannon_SD = sd(Shannon, na.rm = TRUE),
     Shannon_low = quantile(
@@ -348,7 +354,6 @@ alpha_div_repeated_18S <- alpha_long_18S %>%
       na.rm = TRUE,
       names = FALSE
     ),
-    
     Number_iterations = n(),
     .groups = "drop"
   ) %>%
@@ -381,12 +386,10 @@ alpha_iterations_16S <- lapply(seq_len(n_iterations), function(i) {
     trimOTUs = TRUE,
     verbose = FALSE
   )
-  
   alpha_i <- estimate_richness(
     ps_i,
     measures = c("Observed", "Shannon")
   )
-  
   alpha_i %>%
     rownames_to_column("SampleID") %>%
     mutate(Iteration = i)
@@ -420,7 +423,6 @@ alpha_div_repeated_16S <- alpha_long_16S %>%
       na.rm = TRUE,
       names = FALSE
     ),
-    
     Shannon_mean = mean(Shannon, na.rm = TRUE),
     Shannon_SD = sd(Shannon, na.rm = TRUE),
     Shannon_low = quantile(
@@ -435,7 +437,6 @@ alpha_div_repeated_16S <- alpha_long_16S %>%
       na.rm = TRUE,
       names = FALSE
     ),
-    
     Number_iterations = n(),
     .groups = "drop"
   ) %>%
@@ -491,7 +492,6 @@ theme_figures <- function() {
 # Make a figure function
 make_alpha_plot <- function(data, group_name, metric, y_label,
                             x_label = NULL) {
-  
   ggplot(
     filter(data, Group == group_name),
     aes(
@@ -562,7 +562,6 @@ div_fig4 <- make_alpha_plot(
 library(lmerTest)
 
 fit_alpha_model <- function(data, group_name, metric_name) {
-  
   dat <- data %>%
     filter(Group == group_name) %>%
     filter(
@@ -571,29 +570,23 @@ fit_alpha_model <- function(data, group_name, metric_name) {
       !is.na(Season),
       !is.na(Site)
     )
-  
   if (metric_name == "Observed") {
     
     model_formula <- log(Observed) ~
       Habitat + Season + (1 | Site)
-    
   } else {
-    
     model_formula <- Shannon ~
       Habitat + Season + (1 | Site)
   }
-  
   model <- lmer(
     model_formula,
     data = dat,
     REML = TRUE
   )
-  
   model_anova <- anova(
     model,
     ddf = "Satterthwaite"
   )
-  
   habitat_test <- data.frame(
     Group = group_name,
     Metric = metric_name,
@@ -610,7 +603,6 @@ fit_alpha_model <- function(data, group_name, metric_name) {
       model_anova["Habitat", "Pr(>F)"]
     )
   )
-  
   list(
     model = model,
     anova = model_anova,
@@ -654,20 +646,13 @@ test_results
 
 ## Function to obtain averaged Bray-Curtis matrices
 average_bray <- function(ps, iterations = 1000, seed = 2001) {
-  
   taxa <- as(otu_table(ps), "matrix")
-  
   # avgdist() requires samples in rows
   if (taxa_are_rows(ps)) {
     taxa <- t(taxa)
   }
-  
   depth <- min(rowSums(taxa))
-  
-  message("Rarefaction depth: ", depth)
-  
   set.seed(seed)
-  
   avgdist(
     taxa,
     sample = depth,
@@ -1412,13 +1397,11 @@ taxa_18S_hel <- decostand(
 # Extract metadata
 metadata_18S <- data.frame(sample_data(ps_18S))
 
-## Predictor matrices
 # Temporal component Season
 season_18S <- model.matrix(
   ~ Season,
   data = metadata_18S
 )[, -1, drop = FALSE]
-
 
 # Spatial component Habitat
 habitat_18S <- model.matrix(
@@ -1534,7 +1517,6 @@ taxa_16S_hel <- decostand(
 # Extract metadata
 metadata_16S <- data.frame(sample_data(ps_16S))
 
-## Predictor matrices
 # Temporal component Season
 season_16S <- model.matrix(
   ~ Season,
@@ -1643,7 +1625,6 @@ test_16S_env
 
 
 ### Procrustes analysis and Mantel tests
-
 ## Load averaged Bray-Curtis distance matrices
 bray_results <- readRDS(
   "average_Bray_distances_18S_16S.rds"
@@ -1781,7 +1762,6 @@ mantel_results
 
 
 ### ISA
-
 ## For 18S
 counts_18S <- data.frame(otu_table(ps_18Sr))
 counts_18S <- t(counts_18S)
@@ -1789,7 +1769,9 @@ env_16S <- data.frame(sample_data(ps_18Sr))
 sites_16S <- env$Site
 
 set.seed(123)
-ISA_18S <- multipatt(counts_18S, sites_18S, func = "IndVal.g", control = how(nperm=9999))
+ISA_18S <- multipatt(
+  counts_18S, sites_18S, func = "IndVal.g", control = how(nperm=9999)
+)
 summary(ISA_18S)
 
 ## For 16S
@@ -1799,5 +1781,7 @@ env_16S <- data.frame(sample_data(ps_16Sr))
 sites_16S <- env$Site
 
 set.seed(123)
-ISA_16S <- multipatt(counts_16S, sites_16S, func = "IndVal.g", control = how(nperm=9999))
+ISA_16S <- multipatt(
+  counts_16S, sites_16S, func = "IndVal.g", control = how(nperm=9999)
+)
 summary(ISA_16S)
